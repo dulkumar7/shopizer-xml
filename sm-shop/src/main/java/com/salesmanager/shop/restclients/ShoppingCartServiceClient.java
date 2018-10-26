@@ -21,6 +21,7 @@ import com.salesmanager.core.model.merchant.MerchantStore;
 import com.salesmanager.core.model.reference.language.Language;
 import com.salesmanager.core.model.shoppingcart.ShoppingCart;
 import com.salesmanager.shop.model.shoppingcart.ShoppingCartData;
+import com.salesmanager.shop.shoppingcart.requests.objects.CustomerRequest;
 import com.salesmanager.shop.store.controller.shoppingCart.facade.ShoppingCartFacadeImpl;
 
 import lombok.extern.slf4j.Slf4j;
@@ -40,7 +41,7 @@ public class ShoppingCartServiceClient {
 	
 	public ShoppingCart getByCustomer(final Customer customer){
 		try {
-			ShoppingCart shoppingCart = invokeService(url+"/cart", HttpMethod.POST, parseObjectNode(customer)).getBody();
+			ShoppingCart shoppingCart = invokeService(url+"customer?customerId="+customer.getId(), HttpMethod.GET,null).getBody();
 			
 			if (shoppingCart == null) {
 				return null;
@@ -111,9 +112,13 @@ public class ShoppingCartServiceClient {
 		headers.add("Content-", "application/json;Charset-UTF-8");
 		restTemplate.getMessageConverters().add(new StringHttpMessageConverter());
 		  ResponseEntity<ShoppingCart> shoppingCart = restTemplate.exchange(uri, httpMethod, new HttpEntity<>(reqestObject, headers), ShoppingCart.class);
-		Log.info("+++++++++++++++++++++++++ Response back from external service:- {}", shoppingCart.getBody().toString());
+		if(null != shoppingCart && null != shoppingCart.getBody() ){
+		  Log.info("+++++++++++++++++++++++++ Response back from external service:- {}", shoppingCart.getBody().toString());
 		Log.info("+++++++++++++++++++++++++  Http Rsponse back from external service:- {}", shoppingCart.getStatusCode().toString());
 		return shoppingCart;
+		
+		}
+		return null;
 	}
 	
 	

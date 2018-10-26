@@ -127,7 +127,8 @@ public class ShoppingCartFacadeImpl
         if ( !StringUtils.isBlank( item.getCode() ) )
         {
             // get it from the db
-            cartModel = getShoppingCartModel( item.getCode(), store );
+//            cartModel = getShoppingCartModel( item.getCode(), store );
+            cartModel = shoppingCartServiceClient.getByCartIdAndCode(item.getCode(), store);
             if ( cartModel == null )
             {
                 cartModel = createCartModel( shoppingCartData.getCode(), store,customer );
@@ -409,7 +410,7 @@ public class ShoppingCartFacadeImpl
                 if ( StringUtils.isNotBlank( shoppingCartId ) && cart == null )
                 {
                 	 LOG.info( "getByCartIdAndCodet..." );
-                    //cart = shoppingCartService.getByCode( shoppingCartId, store ); // End point
+                    cart = shoppingCartService.getByCode( shoppingCartId, store ); // End point
                 	cart = shoppingCartServiceClient.getByCartIdAndCode(shoppingCartId, store);
                     
                 }

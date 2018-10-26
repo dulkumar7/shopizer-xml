@@ -1,19 +1,21 @@
 package com.shoppingcart.shoppingservice.services;
 
+
 import java.util.HashSet;
 import java.util.Set;
 
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import com.salesmanager.core.business.repositories.shoppingcart.ShoppingCartRepository;
+import com.salesmanager.core.business.rest.model.ShoppingCartResponse;
+import com.salesmanager.core.business.services.shoppingcart.ShoppingCartServiceImpl;
+import com.salesmanager.core.model.shoppingcart.ShoppingCart;
+import com.salesmanager.core.model.shoppingcart.ShoppingCartItem;
 import com.salesmanager.shop.shoppingcart.requests.objects.CartRequest;
 import com.salesmanager.shop.shoppingcart.requests.objects.CustomerRequest;
 import com.salesmanager.shop.shoppingcart.requests.objects.MerchantRequest;
-import com.shoppingcart.shoppingservice.entities.ShoppingCart;
-import com.shoppingcart.shoppingservice.entities.ShoppingCartItem;
-import com.shoppingcart.shoppingservice.repository.ShoppingCartRepository;
-import com.shoppingcart.shoppingservice.support.entities.ShoppingCartResponse;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -23,6 +25,9 @@ public class ShopCartService {
 
 	@Autowired
 	private ShoppingCartRepository shoppingCartRepository;
+
+	@Autowired
+	private ShoppingCartServiceImpl shoppingCartService;
 
 	public ShoppingCartResponse getById(int merchantId, String id) {
 		if (StringUtils.isNotBlank(id)) {
@@ -70,12 +75,13 @@ public class ShopCartService {
 
 	}
 
-	public ShoppingCartResponse getShoppingCartByCustomer(CustomerRequest id) {
+	public ShoppingCartResponse getShoppingCartByCustomer(CustomerRequest id) throws Exception {
 		ShoppingCartResponse shoppingCartRes = null;
-		ShoppingCart shoppingCart = null;
+		ShoppingCart shoppingCart = null; //inside microservice
 		if (0 != id.getCustomerId()) {
 			shoppingCart = shoppingCartRepository.findByCustomer(Long.valueOf(id.getCustomerId()));
-			shoppingCartRes = parseShoppingCartResp(shoppingCart);
+			ShoppingCart shopCart = shoppingCartService.getPopulatedShoppingCart(shoppingCart);
+			shoppingCartRes = parseShoppingCartResp(shopCart);
 		}
 
 		if (shoppingCartRes != null && shoppingCartRes.isObsolete()) {
@@ -87,15 +93,18 @@ public class ShopCartService {
 	}
 
 	public ShoppingCartResponse getByShoppingCartMerchantId(MerchantRequest merchantRequest) {
-		return parseShoppingCartResp(shoppingCartRepository.findById(merchantRequest.getMerchantId(),
-				Long.valueOf(merchantRequest.getCartId())));
+
+		ShoppingCart shoppingCart = shoppingCartRepository.findById(merchantRequest.getMerchantId(),
+				Long.valueOf(merchantRequest.getCartId()));
+
+		// (shoppingCartService.getPopulatedShoppingCart(shoppingCart)
+		return parseShoppingCartResp(shoppingCart);
 	}
 
 	public ShoppingCartResponse getShoppingcartByCode(int id, String code) {
 		return parseShoppingCartResp(shoppingCartRepository.findByCode(id, code));
 	}
 
-	
 	private ShoppingCartResponse parseShoppingCartResp(ShoppingCart cart) {
 		ShoppingCartResponse response = null;
 		Set<ShoppingCartItem> lineItems = new HashSet<ShoppingCartItem>();
